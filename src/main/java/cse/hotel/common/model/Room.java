@@ -1,8 +1,12 @@
+
 package cse.hotel.common.model;
 
 import java.io.Serializable;
 
 public class Room implements Serializable{
+    
+    // 직렬화
+    private static final long serialVersionUID = 1L;
 
     // 1. 필드 (객실의 속성들)
     private int roomNumber;    // 객실 번호 (예: 301)

@@ -1,4 +1,3 @@
-// RoomStatus.java (com.hotel.project.room)
 package cse.hotel.common.model;
 
 import java.io.Serializable;

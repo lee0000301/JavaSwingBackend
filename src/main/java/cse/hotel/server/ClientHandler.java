@@ -1,6 +1,5 @@
 package cse.hotel.server;
 
-
 import cse.hotel.server.service.*;
 import cse.hotel.common.model.*;
 import cse.hotel.common.exception.DuplicateIdException;
@@ -19,7 +18,8 @@ public class ClientHandler implements Runnable {
     private final RoomService roomService = RoomService.getInstance();
     private final FoodService foodService = FoodService.getInstance();
     private final CustomerService customerService = CustomerService.getInstance();
-    private final ClientReservationService reservationService = ClientReservationService.getInstance();
+    private final ClientReservationService clientReservationService = ClientReservationService.getInstance();
+    private final ReservationService reservationService = ReservationService.getInstance();
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -27,7 +27,8 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream()); ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
+        try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream()); 
+             ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
 
             // 클라이언트로부터 요청 수신
             Request request = (Request) ois.readObject();
@@ -59,6 +60,25 @@ public class ClientHandler implements Runnable {
 
         try {
             switch (command) {
+                
+                // -----------------예약부분-----------------------
+                // 관리자용_ 전체 예약 불러오기 
+                case "LOAD_RESERVATIONS":
+                    List<?> allReservations = reservationService.loadReservations();
+                    return new Response(allReservations, "전체 예약 목록 조회 성공");
+                    
+                case "RESERVATION_CREATE":
+                    // Object data를 Reservation 타입으로 형 변환
+                    Reservation reservation = (Reservation) data;
+
+                    boolean result = reservationService.createReservation(reservation);
+
+                    if (result) {
+                        return new Response(true, "예약 등록 성공");
+                    } else {
+                        return new Response(false, "이미 존재하는 예약 번호입니다.");
+                    }
+                    
                 // --- Food (식음료) 관리 ---
                 case "GET_FOODS":
                     List<Food> foods = foodService.getAllFoods();
@@ -133,7 +153,7 @@ public class ClientHandler implements Runnable {
 
                     try {
                         // 1. 예약 정보 저장 (이게 없으면 '내 예약'에 안 뜸)
-                        ClientReservation savedRes = reservationService.makeReservation(
+                        ClientReservation savedRes = clientReservationService.makeReservation(
                                 reqRes.getCustomerId(),
                                 reqRes.getRoomNumber(),
                                 reqRes.getCheckInDate(),
@@ -151,18 +171,18 @@ public class ClientHandler implements Runnable {
                         return new Response("예약 실패: " + e.getMessage());
                     }
 
-                // 1. 내 예약 목록 조회
+                // 사용자 기준_ 예약 목록 조회
                 case "GET_MY_RESERVATIONS":
                     String custId = (String) data; // 고객 ID가 넘어옴
-                    List<ClientReservation> myReservations = reservationService.getReservationsByCustomerId(custId);
+                    List<ClientReservation> myReservations = clientReservationService.getReservationsByCustomerId(custId);
                     return new Response(myReservations, "조회 성공");
 
-                // 2. 예약 취소 (중요: 예약 취소 + 방 복구)
+                // 사용자 기준_  예약 취소 (중요: 예약 취소 + 방 복구)
                 case "CANCEL_RESERVATION":
                     String resId = (String) data; // 예약 ID가 넘어옴
                     try {
                         // 1) 예약 상태 취소하고 방 번호 받아오기
-                        int roomNum = reservationService.cancelReservation(resId);
+                        int roomNum = clientReservationService.cancelReservation(resId);
 
                         // 2) 해당 방을 다시 '빈 방'으로 만들기
                         roomService.cancelBooking(roomNum);

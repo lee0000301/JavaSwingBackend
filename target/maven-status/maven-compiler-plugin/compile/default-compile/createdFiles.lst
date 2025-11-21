@@ -6,6 +6,7 @@ cse\hotel\common\model\Food.class
 cse\hotel\server\HotelServer.class
 cse\hotel\server\repository\CustomerRepository.class
 cse\hotel\common\model\ClientReservation.class
+cse\hotel\common\model\Reservation.class
 cse\hotel\server\service\ClientReservationService.class
 cse\hotel\common\packet\Response.class
 cse\hotel\common\exception\DuplicateIdException.class
@@ -14,6 +15,8 @@ cse\hotel\common\exception\DataNotFoundException.class
 cse\hotel\common\model\RoomStatus.class
 cse\hotel\common\model\Room.class
 cse\hotel\server\ClientHandler.class
+cse\hotel\server\service\ReservationService.class
 cse\hotel\common\packet\Request.class
 cse\hotel\server\repository\RoomRepository.class
+cse\hotel\server\repository\ReservationRepository.class
 cse\hotel\server\service\FoodService.class
