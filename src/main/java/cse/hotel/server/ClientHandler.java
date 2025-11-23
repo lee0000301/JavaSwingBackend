@@ -73,7 +73,7 @@ public class ClientHandler implements Runnable {
                     User resultUser = UserService.getInstance().login(id, pw);
 
                     if (resultUser != null) {
-                        // 변수에 담지 말고 바로 return 하세요!
+                        // 변수에 담지 말고 바로 return 
                         return new Response(resultUser, "로그인 성공");
                     } else {
                         return new Response("아이디 또는 비밀번호가 틀립니다.");
@@ -95,6 +95,20 @@ public class ClientHandler implements Runnable {
                         return new Response(true, "예약 등록 성공");
                     } else {
                         return new Response(false, "이미 존재하는 예약 번호입니다.");
+                    }
+                
+                    // 예약 취소
+                case "CANCEL_RESERVATION":
+                    String resId = (String) data; // 예약 번호(No)가 넘어옴
+                    try {
+                        int roomNum = reservationService.cancelReservation(resId);
+
+                        // 2) 해당 방을 다시 '빈 방'으로 만들기
+                        roomService.cancelBooking(roomNum);
+
+                        return new Response(null, "예약이 정상적으로 취소되었습니다.");
+                    } catch (Exception e) {
+                        return new Response("취소 실패: " + e.getMessage());
                     }
                     
                 // --- Food (식음료) 관리 ---
@@ -196,11 +210,11 @@ public class ClientHandler implements Runnable {
                     return new Response(myReservations, "조회 성공");
 
                 // 사용자 기준_  예약 취소 (중요: 예약 취소 + 방 복구)
-                case "CANCEL_RESERVATION":
-                    String resId = (String) data; // 예약 ID가 넘어옴
+                case "CANCEL_CLIENT_RESERVATION":
+                    String ClientResId = (String) data; // 예약 ID가 넘어옴
                     try {
                         // 1) 예약 상태 취소하고 방 번호 받아오기
-                        int roomNum = clientReservationService.cancelReservation(resId);
+                        int roomNum = clientReservationService.cancelReservation(ClientResId);
 
                         // 2) 해당 방을 다시 '빈 방'으로 만들기
                         roomService.cancelBooking(roomNum);

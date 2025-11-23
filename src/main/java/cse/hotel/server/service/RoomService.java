@@ -6,6 +6,7 @@ import java.util.List;
 import cse.hotel.server.repository.RoomRepository;
 import cse.hotel.common.model.RoomStatus;
 import cse.hotel.common.model.Room;
+import cse.hotel.server.service.ReservationService;
 
 // RoomStatus Enum이 별도로 정의되었다고 가정합니다.
 // public enum RoomStatus { AVAILABLE, OCCUPIED, CLEANING, RESERVED }
@@ -14,6 +15,9 @@ public class RoomService {
 
     // 1. Singleton 인스턴스
     private static final RoomService instance = new RoomService();
+    
+    // 체크인, 아웃, 청소 관리를 위한 Reservation 인스턴스
+    private ReservationService reservationService = ReservationService.getInstance();
     
     // Repository 인스턴스를 가져옵니다 (Singleton 패턴 사용)
     private final RoomRepository roomRepository = RoomRepository.getInstance(); 
@@ -53,33 +57,27 @@ public class RoomService {
         }
     }
     
-    // 기존 메서드들을 새 로직을 사용하도록 수정 및 예외 처리
-    public void checkIn(int roomNumber) throws DataNotFoundException, IllegalArgumentException {
-    Room room = roomRepository.findRoomByNumber(roomNumber);
-    
-    if (room == null) {
-        throw new DataNotFoundException("객실 번호 " + roomNumber + "을 찾을 수 없습니다.");
+    // 1. 체크인 (예약됨 -> 점유중)
+    public void checkIn(int roomNumber) {
+        System.out.println("-> RoomService: " + roomNumber + "호 체크인 요청됨");
+        // 파일 저장 로직 호출
+        reservationService.updateReservationStatus(roomNumber, "점유중");
     }
 
-    // [수정됨] '예약됨(RESERVED)' 상태이거나 '빈 방(AVAILABLE)' 상태면 체크인 가능
-    if (room.getStatus() == RoomStatus.RESERVED || room.getStatus() == RoomStatus.AVAILABLE) {
-        
-        room.setStatus(RoomStatus.OCCUPIED); // 입실 완료 상태로 변경
-        
-        if (roomRepository.updateRoom(room) == null) {
-             throw new DataNotFoundException("객실 정보 업데이트 실패");
-        }
-    } else {
-        // 이미 꽉 찼거나(OCCUPIED), 청소 중(CLEANING)인 경우
-        throw new IllegalArgumentException("현재 방 상태(" + room.getStatus() + ")에서는 입실할 수 없습니다.");
+    // 2. 체크아웃 (점유중 -> 청소중)
+    public void checkOut(int roomNumber) {
+        System.out.println("-> RoomService: " + roomNumber + "호 체크아웃 요청됨");
+        // 파일 저장 로직 호출
+        reservationService.updateReservationStatus(roomNumber, "청소중");
     }
-}
-    public void checkOut(int roomNumber) throws DataNotFoundException, IllegalArgumentException {
-        changeStatus(roomNumber, RoomStatus.OCCUPIED, RoomStatus.CLEANING);
+
+    // 3. 청소 완료 (청소중 -> 빈 객실)
+    public void finishCleaning(int roomNumber) {
+        System.out.println("-> RoomService: " + roomNumber + "호 청소 완료 요청됨");
+        // 파일 저장 로직 호출 (빈 객실로 바꾸거나, 아예 '체크아웃완료' 등으로 처리)
+        reservationService.updateReservationStatus(roomNumber, "빈 객실");
     }
-    public void finishCleaning(int roomNumber) throws DataNotFoundException, IllegalArgumentException {
-        changeStatus(roomNumber, RoomStatus.CLEANING, RoomStatus.AVAILABLE);
-    }
+    
     public void reserveRoom(int roomNumber) throws DataNotFoundException, IllegalArgumentException {
         changeStatus(roomNumber, RoomStatus.AVAILABLE, RoomStatus.RESERVED);
     }
@@ -142,4 +140,6 @@ public class RoomService {
     public Room getRoomInfo(int roomNumber) {
          return roomRepository.findRoomByNumber(roomNumber);
     }
+    
+
 }
