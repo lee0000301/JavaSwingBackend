@@ -6,10 +6,12 @@ D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\F
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\Reservation.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\Room.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\RoomStatus.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\User.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\Request.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\Response.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\ClientHandler.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\HotelServer.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\LoginServer.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\ClientReservationRepository.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\CustomerRepository.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\FoodRepository.java
@@ -20,3 +22,4 @@ D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\FoodService.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\ReservationService.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\RoomService.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\UserService.java

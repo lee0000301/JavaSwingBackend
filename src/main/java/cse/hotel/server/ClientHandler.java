@@ -6,6 +6,7 @@ import cse.hotel.common.exception.DuplicateIdException;
 import cse.hotel.common.exception.DataNotFoundException;
 import cse.hotel.common.packet.Request;
 import cse.hotel.common.packet.Response;
+import cse.hotel.server.service.UserService;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
@@ -60,6 +61,23 @@ public class ClientHandler implements Runnable {
 
         try {
             switch (command) {
+                
+                
+                // -----------로그인 부분---------------
+                case "LOGIN":
+                    User loginAttempt = (User) request.getData();
+                    String id = loginAttempt.getId();
+                    String pw = loginAttempt.getPassword();
+
+                    // UserService를 이용해 검증
+                    User resultUser = UserService.getInstance().login(id, pw);
+
+                    if (resultUser != null) {
+                        // 변수에 담지 말고 바로 return 하세요!
+                        return new Response(resultUser, "로그인 성공");
+                    } else {
+                        return new Response("아이디 또는 비밀번호가 틀립니다.");
+                    }
                 
                 // -----------------예약부분-----------------------
                 // 관리자용_ 전체 예약 불러오기 
