@@ -21,6 +21,7 @@ public class ClientHandler implements Runnable {
     private final CustomerService customerService = CustomerService.getInstance();
     private final ClientReservationService clientReservationService = ClientReservationService.getInstance();
     private final ReservationService reservationService = ReservationService.getInstance();
+    private final UserService userService = UserService.getInstance();
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -61,6 +62,12 @@ public class ClientHandler implements Runnable {
 
         try {
             switch (command) {
+                
+                // -------------------- 사용자 관리 모듈 --------------------
+                case "USER_MANAGE":
+                    // Request의 data 필드에 UserManagementData가 담겨 있음.
+                    // 이 요청을 UserService로 전달하여 처리하고 응답을 받습니다.
+                    return userService.processUserRequest(request); // <--- 이 부분 추가
                 
                 
                 // -----------로그인 부분---------------

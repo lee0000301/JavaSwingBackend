@@ -2,27 +2,23 @@ package cse.hotel.common.model;
 
 import java.io.Serializable;
 
-// 직렬화를 위해 Serializable 인터페이스 구현
+// Serializable: 네트워크를 통해 객체를 전송하기 위해 필수
 public class User implements Serializable {
-    private static final long serialVersionUID = 1L; // 버전 관리용 ID
-
+    private static final long serialVersionUID = 10L; 
+    
     private String id;
     private String password;
-    private boolean isAdmin; // 관리자 여부
+    private boolean isAdmin; 
 
+    // 생성자
     public User(String id, String password, boolean isAdmin) {
         this.id = id;
         this.password = password;
         this.isAdmin = isAdmin;
     }
 
-    // Getter methods
+    // Getter and Setter (필요에 따라 구현)
     public String getId() { return id; }
     public String getPassword() { return password; }
     public boolean isAdmin() { return isAdmin; }
-    
-    @Override
-    public String toString() {
-        return "User{id='" + id + "', isAdmin=" + isAdmin + "}";
-    }
 }

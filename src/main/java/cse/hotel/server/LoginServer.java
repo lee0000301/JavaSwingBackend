@@ -11,6 +11,7 @@ public class LoginServer {
     private static HashMap<String, User> userDatabase;
 
     public static void main(String[] args) {
+        
         // 1. 서버 시작 시 .ser 파일 로드
         loadUserData();
 
@@ -32,12 +33,37 @@ public class LoginServer {
     // 파일에서 유저 정보 읽어오기
     @SuppressWarnings("unchecked")
     private static void loadUserData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("users.ser"))) {
+        File file = new File("data/users.ser");
+
+        if (!file.exists()) {
+            System.out.println("데이터 파일을 찾을 수 없습니다. 기본 계정을 생성합니다.");
+
+            userDatabase = new HashMap<>();
+            userDatabase.put("admin", new User("admin", "1234", true));
+            userDatabase.put("user", new User("user", "123", false));
+
+            // data 폴더 없으면 생성
+            File dir = file.getParentFile();
+            if (!dir.exists()) dir.mkdirs();
+
+            // 기본 계정을 users.ser로 저장
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+                oos.writeObject(userDatabase);
+                System.out.println("users.ser 파일이 생성되었습니다.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return;
+        }
+
+        // 파일이 있으면 기존 로드
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             userDatabase = (HashMap<String, User>) ois.readObject();
             System.out.println("유저 데이터 로드 완료: " + userDatabase.size() + "명");
         } catch (Exception e) {
-            System.out.println("데이터 파일을 찾을 수 없습니다. UserDataGenerator를 먼저 실행하세요.");
-            userDatabase = new HashMap<>(); // 빈 맵으로 초기화
+            e.printStackTrace();
+            userDatabase = new HashMap<>();
         }
     }
 

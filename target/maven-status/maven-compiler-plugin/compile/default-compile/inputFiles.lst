@@ -9,6 +9,8 @@ D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\R
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\model\User.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\Request.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\Response.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\UserManagementData.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\common\packet\UserManagementPacket.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\ClientHandler.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\HotelServer.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\LoginServer.java
@@ -17,9 +19,12 @@ D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\reposit
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\FoodRepository.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\ReservationRepository.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\RoomRepository.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\repository\UserRepository.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\ClientReservationService.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\CreateDefaultUsers.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\CustomerService.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\FoodService.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\ReservationService.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\RoomService.java
+D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\UserManager.java
 D:\JavaSwingProject (합)\JavaSwingServer\src\main\java\cse\hotel\server\service\UserService.java
