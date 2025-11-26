@@ -10,6 +10,7 @@ import cse.hotel.server.service.UserService;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
+import java.util.Map;
 
 public class ClientHandler implements Runnable {
 
@@ -22,6 +23,7 @@ public class ClientHandler implements Runnable {
     private final ClientReservationService clientReservationService = ClientReservationService.getInstance();
     private final ReservationService reservationService = ReservationService.getInstance();
     private final UserService userService = UserService.getInstance();
+    private final PaymentService paymentService = PaymentService.getInstance();
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -137,6 +139,22 @@ public class ClientHandler implements Runnable {
                     // Object data를 String 타입 (ID)으로 형 변환하여 메서드에 전달
                     foodService.deleteFood((String) data);
                     return new Response(null, "식음료 삭제 성공");
+                    
+                    // --- 룸서비스 주문 요청 처리 ---
+                case "ORDER_FOOD":
+                    try {
+                        // 클라이언트가 보낸 Map 받기
+                        java.util.HashMap<String, Object> orderMap = (java.util.HashMap<String, Object>) data;
+
+                        // [수정] 서비스의 processOrder 호출 (재고 차감 & 저장 다 해줌)
+                        foodService.processOrder(orderMap);
+
+                        return new Response(null, "주문이 완료되었습니다.");
+
+                    } catch (Exception e) {
+                        // 재고 부족 시 에러 메시지 반환
+                        return new Response("주문 실패: " + e.getMessage());
+                    }
 
                 // --- Customer (고객) 관리 ---
                 case "GET_CUSTOMERS":
@@ -151,15 +169,49 @@ public class ClientHandler implements Runnable {
                     customerService.updateCustomer((Customer) data);
                     return new Response(null, "고객 정보 수정 성공");
 
+                // --- 체크인 처리 (관리자 vs 고객 구분) ---
                 case "CHECK_IN":
-                    // 클라이언트가 보낸 데이터(방 번호)를 받아서 서비스에 전달
-                    roomService.checkIn((Integer) data);
-                    return new Response(null, "체크인 처리가 완료되었습니다.");
+                    try {
+                        if (data instanceof Integer) {
+                            // [상황 1] 관리자가 요청 (Integer로 방 번호만 옴) -> 검증 없이 바로 체크인
+                            int roomNum = (Integer) data;
+                            roomService.checkIn(roomNum);
+                            return new Response(null, "관리자 권한으로 체크인되었습니다.");
+                        } else {
+                            // [상황 2] 고객이 요청 (HashMap으로 ID+방번호 옴) -> 본인 검증 후 체크인
+                            java.util.HashMap<String, Object> map = (java.util.HashMap<String, Object>) data;
+                            int rNum = (int) map.get("roomNumber");
+                            String cId = (String) map.get("customerId");
 
+                            roomService.checkInWithValidation(rNum, cId);
+                            return new Response(null, "본인 확인 완료. 체크인되었습니다.");
+                        }
+                    } catch (Exception e) {
+                        return new Response("체크인 실패: " + e.getMessage());
+                    }
+
+                // --- 체크아웃 처리 (관리자 vs 고객 구분) ---
                 case "CHECK_OUT":
-                    roomService.checkOut((Integer) data);
-                    return new Response(null, "체크아웃 처리가 완료되었습니다.");
+                    try {
+                        if (data instanceof Integer) {
+                            // [상황 1] 관리자 요청
+                            int roomNum = (Integer) data;
+                            roomService.checkOut(roomNum);
+                            return new Response(null, "관리자 권한으로 체크아웃되었습니다.");
+                        } else {
+                            // [상황 2] 고객 요청
+                            java.util.HashMap<String, Object> map = (java.util.HashMap<String, Object>) data;
+                            int rNum = (int) map.get("roomNumber");
+                            String cId = (String) map.get("customerId");
 
+                            roomService.checkOutWithValidation(rNum, cId);
+                            return new Response(null, "체크아웃 완료. 이용해주셔서 감사합니다.");
+                        }
+                    } catch (Exception e) {
+                        return new Response("체크아웃 실패: " + e.getMessage());
+                    }
+                    
+                    
                 case "FINISH_CLEANING":
                     roomService.finishCleaning((Integer) data);
                     return new Response(null, "청소가 완료되었습니다. 객실이 배정 가능 상태로 변경됩니다.");
@@ -209,12 +261,48 @@ public class ClientHandler implements Runnable {
                         e.printStackTrace(); // 서버 콘솔에 에러 찍기
                         return new Response("예약 실패: " + e.getMessage());
                     }
+                    
+                    // 1. 체크아웃 전 청구서 요청
+                case "REQUEST_BILL":
+                    try {
+                        java.util.HashMap<String, Object> map = (java.util.HashMap<String, Object>) data;
+                        int rNum = (int) map.get("roomNumber");
+                        String cId = (String) map.get("customerId");
+
+                        // 계산된 청구서(Map) 반환
+                        Map<String, Object> bill = paymentService.calculateBill(cId, rNum);
+                        return new Response(bill, "청구서 생성 성공");
+                    } catch (Exception e) {
+                        return new Response("청구서 생성 실패: " + e.getMessage());
+                    }
+
+                // 2. 결제 및 체크아웃 확정
+                case "PAY_AND_CHECKOUT":
+                    try {
+                        Payment payment = (Payment) data;
+
+                        // A. 결제 정보 저장
+                        paymentService.processPayment(payment);
+
+                        // B. 실제 방 체크아웃 처리 (기존 RoomService 기능 활용)
+                        roomService.checkOut(payment.getRoomNumber());
+
+                        return new Response(null, "결제 및 체크아웃이 완료되었습니다.");
+                    } catch (Exception e) {
+                        return new Response("결제 처리 실패: " + e.getMessage());
+                    }
 
                 // 사용자 기준_ 예약 목록 조회
                 case "GET_MY_RESERVATIONS":
                     String custId = (String) data; // 고객 ID가 넘어옴
                     List<ClientReservation> myReservations = clientReservationService.getReservationsByCustomerId(custId);
                     return new Response(myReservations, "조회 성공");
+                    
+                    // [관리자용] 전체 예약 목록 조회 요청
+                case "GET_ALL_RESERVATIONS":
+
+                    List<ClientReservation> adminList = clientReservationService.getAllReservations();
+                    return new Response(adminList, "전체 예약 목록 조회 성공");
 
                 // 사용자 기준_  예약 취소 (중요: 예약 취소 + 방 복구)
                 case "CANCEL_CLIENT_RESERVATION":

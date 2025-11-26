@@ -1,7 +1,9 @@
 cse\hotel\server\repository\FoodRepository.class
 cse\hotel\server\service\RoomService.class
+cse\hotel\server\service\PaymentService.class
 cse\hotel\server\service\UserService$1.class
 cse\hotel\server\service\UserManager.class
+cse\hotel\common\model\Payment.class
 cse\hotel\server\repository\CustomerRepository.class
 cse\hotel\common\model\ClientReservation.class
 cse\hotel\common\model\Reservation.class
@@ -22,7 +24,9 @@ cse\hotel\server\service\CreateDefaultUsers.class
 cse\hotel\common\model\User.class
 cse\hotel\server\service\ClientReservationService.class
 cse\hotel\common\packet\Response.class
+cse\hotel\server\repository\FoodOrderRepository.class
 cse\hotel\common\packet\UserManagementData$Action.class
+cse\hotel\server\repository\PaymentRepository.class
 cse\hotel\server\service\ReservationService.class
 cse\hotel\server\service\UserService.class
 cse\hotel\common\packet\Request.class

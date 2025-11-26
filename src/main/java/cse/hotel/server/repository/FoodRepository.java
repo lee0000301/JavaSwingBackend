@@ -1,61 +1,100 @@
 package cse.hotel.server.repository;
 
+import cse.hotel.common.model.Food;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import cse.hotel.common.model.Food;
 
 public class FoodRepository {
-
-    // 1. 싱글톤 인스턴스
+    
+    // 메뉴 데이터 저장 파일
+    private static final String FILE_PATH = "data/fnb_menu.ser";
+    
     private static final FoodRepository instance = new FoodRepository();
+    private List<Food> foodList;
 
-    // 2. 파일 경로 설정 (프로젝트 루트 폴더 기준)
-    private static final String FILE_PATH = "data/fnb_menu.ser"; 
-    private final File dataFile = new File(FILE_PATH);
-
-    // 3. private 생성자로 외부 생성 차단
     private FoodRepository() {
-        // 데이터 폴더가 없으면 생성
-        if (!dataFile.getParentFile().exists()) {
-            dataFile.getParentFile().mkdirs();
+        File file = new File(FILE_PATH);
+        if (file.getParentFile() != null && !file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+        this.foodList = load();
+        
+        // (테스트용) 파일이 없으면 초기 메뉴 자동 생성
+        if (this.foodList.isEmpty()) {
+            addFood(new Food("치킨", 20000, "바삭한 후라이드", 10));
+            addFood(new Food("피자", 25000, "치즈 듬뿍", 10));
+            addFood(new Food("콜라", 2000, "코카콜라 500ml", 50));
+            addFood(new Food("맥주", 5000, "생맥주 500cc", 30));
+            save(); 
         }
     }
 
-    // 4. 인스턴스 접근 메서드
     public static FoodRepository getInstance() {
         return instance;
     }
 
-    /**
-     * 파일에서 Food 리스트를 불러옵니다. (Load)
-     * @return 파일에서 읽어온 Food DTO List (파일이 없거나 비어있으면 빈 List 반환)
-     */
-    public synchronized List<Food> loadMenus() {
-        List<Food> menuList = new ArrayList<>();
-        
-        // 파일이 존재하고 크기가 0보다 커야 데이터를 읽어옴
-        if (dataFile.exists() && dataFile.length() > 0) {
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile))) {
-                menuList = (List<Food>) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                System.err.println("메뉴 파일 로드 실패: " + e.getMessage());
-                // 파일 손상 시에도 빈 리스트 반환하여 프로그램 계속 실행
-            }
-        }
-        return menuList;
+    // --- 조회 ---
+    public List<Food> findAll() {
+        return new ArrayList<>(foodList);
     }
 
-    /**
-     * 메모리의 Food 리스트를 파일에 저장(덮어쓰기)합니다. (Save)
-     * @param menuList 파일에 저장할 전체 메뉴 List
-     */
-    public synchronized void saveMenus(List<Food> menuList) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile))) {
-            oos.writeObject(menuList);
+    public Food findByName(String name) {
+        for (Food f : foodList) {
+            if (f.getName().equals(name)) return f;
+        }
+        return null;
+    }
+
+    // --- 추가 ---
+    public void addFood(Food food) {
+        // 이름 중복 시 덮어쓰기 혹은 무시 (여기선 추가)
+        foodList.add(food);
+        save();
+    }
+
+    // --- 수정 (재고 업데이트 포함) ---
+    public void updateFood(Food updatedFood) {
+        for (int i = 0; i < foodList.size(); i++) {
+            if (foodList.get(i).getName().equals(updatedFood.getName())) {
+                foodList.set(i, updatedFood);
+                save(); // 변경 즉시 저장
+                return;
+            }
+        }
+    }
+    
+    // 리스트 전체 업데이트 (재고 차감 시 사용)
+    public void updateFoodList(List<Food> newList) {
+        this.foodList = newList;
+        save();
+    }
+
+    // --- 삭제 ---
+    public void deleteFood(String foodName) {
+        foodList.removeIf(f -> f.getName().equals(foodName));
+        save();
+    }
+
+    // --- 파일 I/O ---
+    private void save() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+            oos.writeObject(foodList);
+            System.out.println("💾 식음료 메뉴 저장 완료 (" + foodList.size() + "건)");
         } catch (IOException e) {
-            System.err.println("메뉴 파일 저장 실패: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Food> load() {
+        File file = new File(FILE_PATH);
+        if (!file.exists()) return new ArrayList<>();
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (List<Food>) ois.readObject();
+        } catch (Exception e) {
+            return new ArrayList<>();
         }
     }
 }

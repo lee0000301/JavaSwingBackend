@@ -64,4 +64,29 @@ public class ClientReservationService {
         System.out.println("🚫 예약 취소됨: " + reservationId);
         return res.getRoomNumber(); 
     }
+    
+    //[관리자용]모든 예약 목록 조회
+    public List<ClientReservation> getAllReservations() {
+        return repository.findAll();
+    }
+    
+    
+    // ▼▼▼ [추가] 방 번호로 예약 찾아서 상태 변경 (체크인/아웃 연동용) ▼▼▼
+    public void updateReservationStatus(int roomNumber, String newStatus) {
+        List<ClientReservation> list = repository.findAll();
+        
+        for (ClientReservation r : list) {
+            // 1. 해당 방 번호이고
+            // 2. 이미 취소되거나 완료된 예약이 아닌 유효한 예약을 찾음
+            if (r.getRoomNumber() == roomNumber && 
+                !"CANCELLED".equals(r.getStatus()) && 
+                !"COMPLETED".equals(r.getStatus())) {
+                
+                r.setStatus(newStatus);
+                repository.add(r); // 상태 변경 후 저장
+                System.out.println("📝 예약 상태 업데이트: " + r.getReservationId() + " -> " + newStatus);
+                return; // 하나만 찾아서 바꾸고 종료
+            }
+        }
+    }
 }

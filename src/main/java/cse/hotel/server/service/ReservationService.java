@@ -71,81 +71,30 @@ public class ReservationService {
     
     }
     
-public void updateReservationStatus(int roomNumber, String newStatus) {
-        System.out.println("\n=== [상태 변경 시작] " + roomNumber + "호 -> " + newStatus + " ===");
-        
-        // 1. 파일 로드
-        List<Reservation> list = repository.loadReservations();
-        System.out.println("1. 파일 로드 완료 (총 예약 수: " + list.size() + "개)");
-        
-        boolean isUpdated = false;
-
-        // 2. 검색 및 수정
-        for (Reservation r : list) {
-            // 디버깅: 현재 검사 중인 데이터 출력
-            // System.out.println("   - 검사중: 방번호=" + r.getRoomNo() + ", 상태=" + r.getStatus());
-
-            // 방 번호가 일치하는지 확인
-            if (r.getRoomNo() == roomNumber) {
-                
-                // [중요] 이미 끝난 예약이나 다른 상태인 경우를 구별해야 한다면 조건 추가
-                // 여기서는 일단 해당 방 번호의 '모든 유효한 예약'을 바꿉니다.
-                // (빈 객실이 아니거나, 혹은 체크인하려는 경우)
-                
-                System.out.println("   >>> [타겟 발견!] 기존 상태: " + r.getStatus());
-                
-                r.setStatus(newStatus); // 상태 변경
-                isUpdated = true;
-                
-                // 유효한 예약 하나만 바꾸고 싶다면 break; 를 넣으세요.
-                // break; 
-            }
-        }
-
-        // 3. 저장
-        if (isUpdated) {
-            repository.saveReservations(list); // ★ 파일 저장 ★
-            System.out.println("2. [저장 성공] 파일에 덮어쓰기 완료.");
-        } else {
-            System.out.println("2. [저장 실패] " + roomNumber + "호에 해당하는 예약 정보를 리스트에서 못 찾았습니다.");
-        }
-        System.out.println("==============================\n");
-    }
     
-    public int cancelReservation(String targetNo) throws DataNotFoundException {
+    public int cancelReservation(String reservationId) throws DataNotFoundException {
         List<Reservation> reservationList = repository.loadReservations();
         Reservation target = null;
         int roomNumber = -1;
 
-        System.out.println("\n========== [디버깅 시작] ==========");
-        System.out.println("1. 클라이언트가 보낸 삭제 요청 번호: [" + targetNo + "]");
-        System.out.println("2. 현재 서버가 가진 예약 목록 (" + reservationList.size() + "개):");
-
+        // 삭제할 예약 찾기
         for (Reservation r : reservationList) {
-            // 서버에 저장된 값들을 따옴표([])로 감싸서 공백 여부 확인
-            String serverNo = r.getReservationNo();
-            String serverId = r.getReservationId(); // 혹시 모르니 이것도 확인
-            
-            System.out.println("   - 검사 중인 객체: No=[" + serverNo + "], ID=[" + serverId + "]");
-
-            // 비교 로직 (No 기준)
-            if (serverNo != null && serverNo.trim().equals(targetNo.trim())) {
-                System.out.println("   >>> [찾았다!] 일치하는 예약 발견!");
+            if (r.getReservationId().equals(reservationId)) {
                 target = r;
-                roomNumber = r.getRoomNumber();
+                roomNumber = r.getRoomNumber(); // 방 번호 백업
                 break;
             }
         }
-        System.out.println("==================================\n");
 
         if (target == null) {
-            throw new DataNotFoundException("취소 실패: 예약 번호 [" + targetNo + "]와 일치하는 데이터가 서버 리스트에 없습니다.");
+            throw new DataNotFoundException("오류: 취소하려는 예약 ID를 찾을 수 없습니다. (" + reservationId + ")");
         }
 
+        // 리스트에서 삭제 및 저장
         reservationList.remove(target);
         repository.saveReservations(reservationList);
         
-        System.out.println("삭제 성공 및 파일 저장 완료.");
-        return roomNumber;
+        System.out.println("예약 취소 완료: " + reservationId);
+        return roomNumber; // 취소된 방 번호 리턴 (ClientHandler에서 사용)
     }
 }
